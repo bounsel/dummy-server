@@ -4,8 +4,11 @@ WORKDIR /app
 
 COPY app.py .
 
-RUN pip install flask
+RUN apt-get update && \
+    apt-get install -y openssl && \
+    openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365 -subj '/CN=localhost' && \
+    pip install flask gunicorn
 
-EXPOSE 80
+EXPOSE 443
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:443", "--certfile=cert.pem", "--keyfile=key.pem", "app:app"]
